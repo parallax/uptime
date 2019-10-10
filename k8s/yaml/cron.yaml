@@ -49,10 +49,7 @@ spec:
         - name: APP_URL
           value: 'uptime.local.parallax.dev'
         - name: DB_HOST
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials'
-              key: endpoint
+          value: mysql-production.mysql
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -64,10 +61,7 @@ spec:
               name: 'mysql-credentials'
               key: username
         - name: DB_DATABASE
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials'
-              key: database
+          value: uptime
         imagePullPolicy: Always
         resources:
           limits:
