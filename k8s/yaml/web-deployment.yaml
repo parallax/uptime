@@ -63,6 +63,11 @@ spec:
               key: username
         - name: DB_DATABASE
           value: uptime
+        - name: APP_KEY
+          valueFrom:
+            secretKeyRef:
+              name: 'appkey'
+              key: appkey
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 1
