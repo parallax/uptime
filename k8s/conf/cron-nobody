@@ -1,1 +1,2 @@
 * * * * * cd /src-shared && php artisan monitor:check-uptime
+* * * * * cd /src-shared && php artisan monitor:check-certificate
