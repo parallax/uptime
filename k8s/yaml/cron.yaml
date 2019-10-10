@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+  labels:
+    app: 'uptime-worker'
+  name: 'uptime-worker'
+  namespace: 'uptime'
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: 'uptime-worker'
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: 'uptime-worker'
+    spec:
+      volumes:
+        - name: shared-files
+          emptyDir: {}
+      containers:
+      - name: php
+        image: '{{ image:php-fpm }}'
+        command: ["/start-cron.sh"]
+        env:
+        - name: ENVIRONMENT
+          value: 'production'
+        - name: SITE_NAME
+          value: 'uptime'
+        - name: SITE_BRANCH
+          value: 'master'
+        - name: BUILD
+          value: '{{ build }}'
+        - name: APP_ENV
+          value: 'production'
+        - name: LOG_CHANNEL
+          value: 'stderr'
+        - name: APP_URL
+          value: 'uptime.local.parallax.dev'
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-master'
+              key: endpoint
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-master'
+              key: password
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-master'
+              key: username
+        - name: DB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-master'
+              key: database
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "1"
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        volumeMounts:
+          - name: shared-files
+            mountPath: /src-shared
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 20

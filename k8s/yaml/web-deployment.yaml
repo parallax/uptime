@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+  labels:
+    app: 'uptime'
+  name: 'uptime'
+  namespace: 'uptime'
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: 'uptime'
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: 'uptime'
+    spec:
+      volumes:
+        - name: shared-files
+          emptyDir: {}
+        - name: uploads
+          emptyDir: {}
+      containers:
+      - name: php
+        image: '{{ image:php-fpm }}'
+        env:
+        - name: ENVIRONMENT
+          value: 'production'
+        - name: SITE_NAME
+          value: 'uptime'
+        - name: SITE_BRANCH
+          value: 'master'
+        - name: BUILD
+          value: '{{ build }}'
+        - name: APP_ENV
+          value: 'production'
+        - name: LOG_CHANNEL
+          value: 'stderr'
+        - name: APP_URL
+          value: 'uptime.local.parallax.dev'
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-master'
+              key: endpoint
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-master'
+              key: password
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-master'
+              key: username
+        - name: DB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-master'
+              key: database
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 1
+          exec:
+            command:
+            - /healthcheck.sh
+            - --listen-queue=10 # fails if there are more than 10 processes waiting in the fpm queue
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          failureThreshold: 1
+          exec:
+            command:
+            - /healthcheck.sh
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: "1"
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        volumeMounts:
+          - name: shared-files
+            mountPath: /src-shared
+          - name: uploads
+            mountPath: /var/nginx-uploads
+      - name: openresty
+        image: '{{ image:openresty }}'
+        env:
+        - name: ENVIRONMENT
+          value: 'production'
+        - name: SITE_NAME
+          value: 'uptime'
+        - name: SITE_BRANCH
+          value: 'master'
+        - name: BUILD
+          value: '{{ build }}'
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: openresty
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: openresty
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 2
+          timeoutSeconds: 2
+        ports:
+        - containerPort: 80
+          name: openresty
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "1"
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        volumeMounts:
+          - name: shared-files
+            mountPath: /src-shared
+          - name: uploads
+            mountPath: /var/nginx-uploads
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 20

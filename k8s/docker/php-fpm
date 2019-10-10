@@ -1,0 +1,7 @@
+FROM prlx/k8s-openresty-php-php:release-php-7.2-latest
+
+ADD /k8s/conf/cron-nobody /etc/cron/nobody
+
+ADD / /src
+
+RUN cd /src && composer install

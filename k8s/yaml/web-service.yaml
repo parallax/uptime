@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: 'web'
+  namespace: 'uptime'
+spec:
+  ports:
+  - name: openresty
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: 'uptime'
+  sessionAffinity: None
+  type: ClusterIP
