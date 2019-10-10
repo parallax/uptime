@@ -49,6 +49,26 @@ spec:
           value: 'stderr'
         - name: APP_URL
           value: 'uptime.local.parallax.dev'
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials'
+              key: endpoint
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials'
+              key: password
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials'
+              key: username
+        - name: DB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials'
+              key: database
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 1
