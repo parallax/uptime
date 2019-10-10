@@ -31,7 +31,7 @@ spec:
           emptyDir: {}
       containers:
       - name: php
-        image: '{{ image:php-fpm }}'
+        image: 'prlx/uptime:latest'
         command: ["/start-cron.sh"]
         env:
         - name: ENVIRONMENT
@@ -41,34 +41,14 @@ spec:
         - name: SITE_BRANCH
           value: 'master'
         - name: BUILD
-          value: '{{ build }}'
+          value: '1'
         - name: APP_ENV
           value: 'production'
         - name: LOG_CHANNEL
           value: 'stderr'
         - name: APP_URL
           value: 'uptime.local.parallax.dev'
-        - name: DB_HOST
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials-master'
-              key: endpoint
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials-master'
-              key: password
-        - name: DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials-master'
-              key: username
-        - name: DB_DATABASE
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials-master'
-              key: database
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         resources:
           limits:
             cpu: "1"

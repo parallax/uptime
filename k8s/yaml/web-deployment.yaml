@@ -33,7 +33,7 @@ spec:
           emptyDir: {}
       containers:
       - name: php
-        image: '{{ image:php-fpm }}'
+        image: 'prlx/uptime:latest'
         env:
         - name: ENVIRONMENT
           value: 'production'
@@ -42,34 +42,14 @@ spec:
         - name: SITE_BRANCH
           value: 'master'
         - name: BUILD
-          value: '{{ build }}'
+          value: '1'
         - name: APP_ENV
           value: 'production'
         - name: LOG_CHANNEL
           value: 'stderr'
         - name: APP_URL
           value: 'uptime.local.parallax.dev'
-        - name: DB_HOST
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials-master'
-              key: endpoint
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials-master'
-              key: password
-        - name: DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials-master'
-              key: username
-        - name: DB_DATABASE
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials-master'
-              key: database
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 1
           exec:
@@ -102,7 +82,7 @@ spec:
           - name: uploads
             mountPath: /var/nginx-uploads
       - name: openresty
-        image: '{{ image:openresty }}'
+        image: 'prlx/k8s-openresty-php-openresty:release-latest'
         env:
         - name: ENVIRONMENT
           value: 'production'
@@ -111,7 +91,7 @@ spec:
         - name: SITE_BRANCH
           value: 'master'
         - name: BUILD
-          value: '{{ build }}'
+          value: '1'
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
