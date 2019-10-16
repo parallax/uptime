@@ -31,7 +31,7 @@ spec:
           emptyDir: {}
       containers:
       - name: php
-        image: '{{ image_php_fpm }}'
+        image: '{{ image_php-fpm }}'
         command: ["/start-cron.sh"]
         env:
         - name: ENVIRONMENT
