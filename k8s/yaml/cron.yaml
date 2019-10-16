@@ -4,16 +4,16 @@ metadata:
   annotations:
     cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
   labels:
-    app: 'uptime-worker'
-  name: 'uptime-worker'
-  namespace: 'uptime'
+    app: '{{ app }}-{{ branch }}-cron-{{ build }}'
+  name: '{{ app }}-{{ branch }}-cron-{{ build }}'
+  namespace: '{{ namespace }}'
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      app: 'uptime-worker'
+      app: '{{ app }}-{{ branch }}-cron-{{ build }}'
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -24,14 +24,14 @@ spec:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
-        app: 'uptime-worker'
+        app: '{{ app }}-{{ branch }}-cron-{{ build }}'
     spec:
       volumes:
         - name: shared-files
           emptyDir: {}
       containers:
       - name: php
-        image: 'prlx/uptime:latest'
+        image: '{{ image_php_fpm }}'
         command: ["/start-cron.sh"]
         env:
         - name: ENVIRONMENT
@@ -48,20 +48,6 @@ spec:
           value: 'stderr'
         - name: APP_URL
           value: 'uptime.local.parallax.dev'
-        - name: DB_HOST
-          value: mysql-production.mysql
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials'
-              key: password
-        - name: DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: 'mysql-credentials'
-              key: username
-        - name: DB_DATABASE
-          value: uptime
         imagePullPolicy: Always
         resources:
           limits:

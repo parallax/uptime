@@ -1,0 +1,6 @@
+afterDeploy:
+  delete:
+    - kind: Deployment
+      namePattern: '{{ app }}-{{ branch }}-cron-*'
+      nameApartFrom: '{{ app }}-{{ branch }}-cron-{{ build }}'
+      namespace: '{{ namespace }}'
