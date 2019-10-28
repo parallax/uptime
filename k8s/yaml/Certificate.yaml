@@ -3,7 +3,7 @@ apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: '{{ domain_md5 }}'
-  namespace: kubernetes-dashboard
+  namespace: '{{ namespace }}'
 spec:
   secretName: '{{ domain_md5 }}-tls'
   dnsNames:
