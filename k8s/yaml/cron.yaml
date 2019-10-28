@@ -4,8 +4,8 @@ metadata:
   annotations:
     cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
   labels:
-    app: '{{ app }}-{{ branch }}-cron-{{ build }}'
-  name: '{{ app }}-{{ branch }}-cron-{{ build }}'
+    app: 'cron-{{ app }}-{{ branch }}-{{ build }}'
+  name: 'cron-{{ app }}-{{ branch }}-cron-{{ build }}'
   namespace: '{{ namespace }}'
 spec:
   progressDeadlineSeconds: 600
@@ -13,7 +13,7 @@ spec:
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      app: '{{ app }}-{{ branch }}-cron-{{ build }}'
+      app: 'cron-{{ app }}-{{ branch }}-{{ build }}'
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -24,7 +24,7 @@ spec:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
-        app: '{{ app }}-{{ branch }}-cron-{{ build }}'
+        app: 'cron-{{ app }}-{{ branch }}-{{ build }}'
     spec:
       volumes:
         - name: shared-files

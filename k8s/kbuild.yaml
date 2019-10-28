@@ -8,6 +8,10 @@ domains:
 afterDeploy:
   delete:
     - kind: Deployment
-      namePattern: '{{ app }}-{{ branch }}-cron-*'
-      nameApartFrom: '{{ app }}-{{ branch }}-cron-{{ build }}'
+      namePattern: 'cron-{{ app }}-{{ branch }}-*'
+      nameApartFrom: 'cron-{{ app }}-{{ branch }}-{{ build }}'
+      namespace: '{{ namespace }}'
+    - kind: Deployment
+      namePattern: '{{ app }}-{{ branch }}-*'
+      nameApartFrom: '{{ app }}-{{ branch }}-{{ build }}'
       namespace: '{{ namespace }}'
