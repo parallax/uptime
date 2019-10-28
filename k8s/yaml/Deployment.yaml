@@ -88,16 +88,6 @@ spec:
           value: '{{ build }}'
         - name: DB_CONNECTION
           value: mysql
-        - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: 'aws-credentials'
-              key: AccessKeyId
-        - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: 'aws-credentials'
-              key: SecretAccessKey
         image: '{{ image_php-fpm }}'
         imagePullPolicy: IfNotPresent
         volumeMounts:
