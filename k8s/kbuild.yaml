@@ -1,3 +1,10 @@
+domains:
+  - domain: '{{ app }}.{{ branch }}.{{ environment }}.local.parallax.dev'
+    environments: '*'
+    branches: '*'
+  - domain: '{{ app }}.{{ environment }}.local.parallax.dev'
+    environments: '*'
+    branches: 'master'
 afterDeploy:
   delete:
     - kind: Deployment

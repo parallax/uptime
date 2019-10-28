@@ -1,0 +1,18 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: '{{ domain_md5 }}'
+  namespace: kubernetes-dashboard
+spec:
+  secretName: '{{ domain_md5 }}-tls'
+  dnsNames:
+  - '{{ domain }}'
+  acme:
+    config:
+    - http01:
+        ingressClass: traefik
+      domains:
+      - '{{ domain }}'
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer

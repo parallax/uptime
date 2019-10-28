@@ -1,0 +1,157 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+  labels:
+    app: '{{ app }}-{{ branch }}-{{ build }}'
+  name: '{{ app }}-{{ branch }}-{{ build }}'
+  namespace: '{{ namespace }}'
+spec:
+  minReadySeconds: 10
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: '{{ app }}-{{ branch }}-{{ build }}'
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: '{{ app }}-{{ branch }}-{{ build }}'
+    spec:
+      containers:
+      - name: openresty
+        image: 'prlx/k8s-openresty-php-openresty:release-latest'
+        env:
+        - name: ENVIRONMENT
+          value: '{{ environment }}'
+        - name: SITE_NAME
+          value: '{{ app }}'
+        - name: SITE_BRANCH
+          value: '{{ branch }}'
+        - name: BUILD
+          value: '{{ build }}'
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: openresty
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: openresty
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          successThreshold: 2
+          timeoutSeconds: 2
+        ports:
+        - containerPort: 80
+          name: openresty
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1024Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        volumeMounts:
+        - name: shared-files
+          mountPath: /src-shared
+      - name: php-fpm
+        env:
+        - name: ENVIRONMENT
+          value: '{{ environment }}'
+        - name: AWS_HOST_ENVIRONMENT
+          value: '{{ environment }}'
+        - name: SITE_NAME
+          value: '{{ app }}'
+        - name: SITE_BRANCH
+          value: '{{ branch }}'
+        - name: BUILD
+          value: '{{ build }}'
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-{{ branch }}'
+              key: endpoint
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-{{ branch }}'
+              key: password
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-{{ branch }}'
+              key: username
+        - name: DB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: 'mysql-credentials-{{ branch }}'
+              key: database
+        - name: DB_CONNECTION
+          value: mysql
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: 'aws-credentials'
+              key: AccessKeyId
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: 'aws-credentials'
+              key: SecretAccessKey
+        image: '{{ image_php-fpm }}'
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: shared-files
+          mountPath: /src-shared
+        livenessProbe:
+          failureThreshold: 1
+          exec:
+            command:
+            - /healthcheck.sh
+            - --listen-queue=20 # fails if there are more than 10 processes waiting in the fpm queue
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          failureThreshold: 1
+          exec:
+            command:
+            - /healthcheck.sh
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1024Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+      volumes:
+      - name: shared-files
+        emptyDir: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 20
